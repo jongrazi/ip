@@ -29,14 +29,24 @@ public class Friday {
                         System.out.println(" " + (i + 1) + ". " + tasks.get(i));
                     }
                     System.out.println(separator);
-                } else if (command.startsWith("mark")) {
-                    // split into keyword and index
+                } else if (command.startsWith("delete")) {
                     String[] parts = command.split("\\s+", 2);
                     if (parts.length < 2) {
                         throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
                     }
                     int index = Integer.parseInt(parts[1]) - 1;
-                    // tasks.get will throw IndexOutOfBoundsException if index is invalid
+                    Task removed = tasks.remove(index); // throws IndexOutOfBoundsException if invalid
+                    System.out.println(separator);
+                    System.out.println("Noted. I've removed this task:");
+                    System.out.println(" " + removed);
+                    System.out.println("Boss, you have " + tasks.size() + " tasks in the list.");
+                    System.out.println(separator);
+                } else if (command.startsWith("mark")) {
+                    String[] parts = command.split("\\s+", 2);
+                    if (parts.length < 2) {
+                        throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
+                    }
+                    int index = Integer.parseInt(parts[1]) - 1;
                     Task t = tasks.get(index);
                     t.markAsDone();
                     System.out.println(separator);
