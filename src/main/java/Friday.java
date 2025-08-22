@@ -15,7 +15,7 @@ public class Friday {
 
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
-            String command = scanner.nextLine();
+            String command = scanner.nextLine().trim();
 
             if (command.trim().equalsIgnoreCase("bye")) {
                 //if bye then go to goodbye block
@@ -56,6 +56,40 @@ public class Friday {
                     System.out.println(separator);
                 }
 
+            } else if (command.startsWith("todo ")) {
+                String desc = command.substring(5).trim();
+                Task t = new Todo(desc);
+                tasks.add(t);
+                System.out.println(separator);
+                System.out.println("Got it boss. I have added this task:");
+                System.out.println(" " + t);
+                System.out.println("Boss, you have " + tasks.size() + " tasks in the list.");
+                System.out.println(separator);
+
+            } else if (command.startsWith("deadline ")) {
+                String details = command.substring(9).trim();
+                String[] parts = details.split(" /by ", 2);
+                if (parts.length == 2) {
+                    String desc = parts[0].trim();
+                    String date = parts[1].trim();
+                    Deadline t = new Deadline(desc, date);
+                    tasks.add(t);
+                    printAddMessage(t, tasks.size(), separator);
+                }
+
+            } else if (command.startsWith("event ")) {
+                String details = command.substring(6).trim();
+                int fromIdx = details.indexOf(" /from ");
+                int toIdx = details.indexOf(" /to ");
+                if (fromIdx != -1 && toIdx != -1) {
+                    String desc = details.substring(0, fromIdx).trim();
+                    String from = details.substring(fromIdx + 7, toIdx).trim();
+                    String to = details.substring(toIdx + 5).trim();
+                    Event t = new Event(desc, from, to);
+                    tasks.add(t);
+                    printAddMessage(t, tasks.size(), separator);
+                }
+
             } else {
                 Task t = new Task(command);
                 tasks.add(t);
@@ -65,5 +99,12 @@ public class Friday {
             }
         }
         scanner.close();
+    }
+    private static void printAddMessage(Task t, int totalTasks, String separator) {
+        System.out.println(separator);
+        System.out.println("Affirmative. I've added this task:");
+        System.out.println(" " + t);
+        System.out.println("Boss, you have " + totalTasks + " tasks in the list.");
+        System.out.println(separator);
     }
 }
