@@ -1,7 +1,39 @@
-Hello from
- ____        _        
-|  _ \ _   _| | _____ 
-| | | | | | | |/ / _ \
-| |_| | |_| |   <  __/
-|____/ \__,_|_|\_\___|
-
+____________________________________________________________
+Got it boss. I have added this task:
+ [T][ ] read book
+Boss, you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Affirmative. I've added this task:
+ [D][ ] return book (by: Tuesday)
+Boss, you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Affirmative. I've added this task:
+ [E][ ] team meeting (from: Wednesday 2pm to: 4pm)
+Boss, you have 3 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Affirmative, loading tasks...
+ 1. [T][ ] read book
+ 2. [D][ ] return book (by: Tuesday)
+ 3. [E][ ] team meeting (from: Wednesday 2pm to: 4pm)
+____________________________________________________________
+____________________________________________________________
+Okay boss, I have marked this task as done:
+ [D][X] return book (by: Tuesday)
+____________________________________________________________
+____________________________________________________________
+Okay boss, I have marked this task as not done yet:
+ [D][ ] return book (by: Tuesday)
+____________________________________________________________
+____________________________________________________________
+Noted. I've removed this task:
+ [E][ ] team meeting (from: Wednesday 2pm to: 4pm)
+Boss, you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Affirmative, loading tasks...
+ 1. [T][ ] read book
+ 2. [D][ ] return book (by: Tuesday)
+____________________________________________________________
