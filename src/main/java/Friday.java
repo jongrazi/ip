@@ -163,7 +163,11 @@ public class Friday {
                     if ("T".equals(type)) {
                         t = new Todo(desc);
                     } else if ("D".equals(type) && parts.length >= 4) {
-                        t = new Deadline(desc, parts[3].trim());
+                        try {
+                            t = new Deadline(desc, parts[3].trim());
+                        } catch (java.time.format.DateTimeParseException ex) {
+                            t = null;
+                        }
                     } else if ("E".equals(type) && parts.length >= 5) {
                         t = new Event(desc, parts[3].trim(), parts[4].trim());
                     }
@@ -183,45 +187,17 @@ public class Friday {
             if (SAVE_PATH.getParent() != null) Files.createDirectories(SAVE_PATH.getParent());
             try (BufferedWriter bw = Files.newBufferedWriter(SAVE_PATH, StandardCharsets.UTF_8)) {
                 for (Task t : tasks) {
-                    String s = t.toString();
-                    char type = s.length() > 1 ? s.charAt(1) : 'T';
-                    int statusIdx = s.indexOf(']');
-                    int nextIdx = s.indexOf(']', statusIdx + 1);
-                    boolean done = false;
-                    if (nextIdx != -1 && nextIdx >= 0 && nextIdx + 1 < s.length()) {
-                        done = s.charAt(nextIdx - 1) == 'X';
-                    }
-                    String rest = s.substring(nextIdx + 2);
                     String line;
-                    if (type == 'T') {
-                        line = String.join("|", "T", done ? "1" : "0", rest);
-                    } else if (type == 'D') {
-                        int byIdx = rest.lastIndexOf(" (by: ");
-                        String desc = byIdx == -1 ? rest : rest.substring(0, byIdx);
-                        String by = "";
-                        if (byIdx != -1) {
-                            int start = byIdx + 6;
-                            int end = rest.endsWith(")") ? rest.length() - 1 : rest.length();
-                            by = rest.substring(start, end);
-                        }
-                        line = String.join("|", "D", done ? "1" : "0", desc, by);
-                    } else if (type == 'E') {
-                        int fromIdx = rest.lastIndexOf(" (from: ");
-                        String desc = fromIdx == -1 ? rest : rest.substring(0, fromIdx);
-                        String from = "";
-                        String to = "";
-                        if (fromIdx != -1) {
-                            int startFrom = fromIdx + 8;
-                            int toSep = rest.indexOf(" to: ", startFrom);
-                            int endPar = rest.endsWith(")") ? rest.length() - 1 : rest.length();
-                            if (toSep != -1) {
-                                from = rest.substring(startFrom, toSep);
-                                to = rest.substring(toSep + 5, endPar);
-                            }
-                        }
-                        line = String.join("|", "E", done ? "1" : "0", desc, from, to);
+                    if (t instanceof Todo) {
+                        line = String.join("|", "T", t.isDone() ? "1" : "0", t.getDescription());
+                    } else if (t instanceof Deadline) {
+                        Deadline d = (Deadline) t;
+                        line = String.join("|", "D", d.isDone() ? "1" : "0", d.getDescription(), d.getByIso());
+                    } else if (t instanceof Event) {
+                        Event e = (Event) t;
+                        line = String.join("|", "E", e.isDone() ? "1" : "0", e.getDescription(), e.getFrom(), e.getTo());
                     } else {
-                        line = String.join("|", "T", done ? "1" : "0", rest);
+                        line = String.join("|", "T", t.isDone() ? "1" : "0", t.getDescription());
                     }
                     bw.write(line);
                     bw.newLine();
