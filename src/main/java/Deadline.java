@@ -6,6 +6,10 @@ public class Deadline extends Task {
         this.date = date;
     }
 
+    public String getBy() {
+        return this.date;
+    }
+
     @Override
     public String toString() {
         return TaskType.DEADLINE.icon() + super.toString() + " (by: " + date + ")";
