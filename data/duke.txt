@@ -1,0 +1,3 @@
+T|0|homework
+E|0|homecoming|friday|sunday
+D|1|project|tuesday

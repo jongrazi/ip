@@ -1,8 +1,17 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 public class Friday {
+    private static final Path SAVE_PATH = Paths.get("data", "duke.txt");
+
     public static void main(String[] args) {
         String separator = "_".repeat(60);
 
@@ -12,6 +21,7 @@ public class Friday {
         System.out.println(separator);
 
         List<Task> tasks = new ArrayList<>();
+        tasks.addAll(loadTasks());
         Scanner scanner = new Scanner(System.in);
 
         while (scanner.hasNextLine()) {
@@ -35,7 +45,8 @@ public class Friday {
                         throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
                     }
                     int index = Integer.parseInt(parts[1]) - 1;
-                    Task removed = tasks.remove(index); // throws IndexOutOfBoundsException if invalid
+                    Task removed = tasks.remove(index);
+                    saveTasks(tasks);
                     System.out.println(separator);
                     System.out.println("Noted. I've removed this task:");
                     System.out.println(" " + removed);
@@ -49,6 +60,7 @@ public class Friday {
                     int index = Integer.parseInt(parts[1]) - 1;
                     Task t = tasks.get(index);
                     t.markAsDone();
+                    saveTasks(tasks);
                     System.out.println(separator);
                     System.out.println("Okay boss, I have marked this task as done:");
                     System.out.println(" " + t);
@@ -61,6 +73,7 @@ public class Friday {
                     int index = Integer.parseInt(parts[1]) - 1;
                     Task t = tasks.get(index);
                     t.markAsNotDone();
+                    saveTasks(tasks);
                     System.out.println(separator);
                     System.out.println("Okay boss, I have marked this task as not done yet:");
                     System.out.println(" " + t);
@@ -72,6 +85,7 @@ public class Friday {
                     }
                     Task t = new Todo(desc);
                     tasks.add(t);
+                    saveTasks(tasks);
                     System.out.println(separator);
                     System.out.println("Got it boss. I have added this task:");
                     System.out.println(" " + t);
@@ -87,6 +101,7 @@ public class Friday {
                     String by = parts[1].trim();
                     Deadline t = new Deadline(desc, by);
                     tasks.add(t);
+                    saveTasks(tasks);
                     printAddMessage(t, tasks.size(), separator);
                 } else if (command.startsWith("event")) {
                     String details = command.length() > 5 ? command.substring(5).trim() : "";
@@ -103,6 +118,7 @@ public class Friday {
                     }
                     Event t = new Event(desc, from, to);
                     tasks.add(t);
+                    saveTasks(tasks);
                     printAddMessage(t, tasks.size(), separator);
                 } else {
                     throw new FridayException("I'm sorry boss, I didn't quite catch that...");
@@ -126,5 +142,92 @@ public class Friday {
         System.out.println(" " + t);
         System.out.println("Boss, you have " + totalTasks + " tasks in the list.");
         System.out.println(separator);
+    }
+
+    private static List<Task> loadTasks() {
+        List<Task> list = new ArrayList<>();
+        try {
+            if (!Files.exists(SAVE_PATH)) {
+                if (SAVE_PATH.getParent() != null) Files.createDirectories(SAVE_PATH.getParent());
+                return list;
+            }
+            try (BufferedReader br = Files.newBufferedReader(SAVE_PATH, StandardCharsets.UTF_8)) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split("\\|", -1);
+                    if (parts.length < 3) continue;
+                    String type = parts[0].trim();
+                    boolean done = "1".equals(parts[1].trim());
+                    String desc = parts[2].trim();
+                    Task t = null;
+                    if ("T".equals(type)) {
+                        t = new Todo(desc);
+                    } else if ("D".equals(type) && parts.length >= 4) {
+                        t = new Deadline(desc, parts[3].trim());
+                    } else if ("E".equals(type) && parts.length >= 5) {
+                        t = new Event(desc, parts[3].trim(), parts[4].trim());
+                    }
+                    if (t != null) {
+                        if (done) t.markAsDone();
+                        list.add(t);
+                    }
+                }
+            }
+        } catch (IOException e) {
+        }
+        return list;
+    }
+
+    private static void saveTasks(List<Task> tasks) {
+        try {
+            if (SAVE_PATH.getParent() != null) Files.createDirectories(SAVE_PATH.getParent());
+            try (BufferedWriter bw = Files.newBufferedWriter(SAVE_PATH, StandardCharsets.UTF_8)) {
+                for (Task t : tasks) {
+                    String s = t.toString();
+                    char type = s.length() > 1 ? s.charAt(1) : 'T';
+                    int statusIdx = s.indexOf(']');
+                    int nextIdx = s.indexOf(']', statusIdx + 1);
+                    boolean done = false;
+                    if (nextIdx != -1 && nextIdx >= 0 && nextIdx + 1 < s.length()) {
+                        done = s.charAt(nextIdx - 1) == 'X';
+                    }
+                    String rest = s.substring(nextIdx + 2);
+                    String line;
+                    if (type == 'T') {
+                        line = String.join("|", "T", done ? "1" : "0", rest);
+                    } else if (type == 'D') {
+                        int byIdx = rest.lastIndexOf(" (by: ");
+                        String desc = byIdx == -1 ? rest : rest.substring(0, byIdx);
+                        String by = "";
+                        if (byIdx != -1) {
+                            int start = byIdx + 6;
+                            int end = rest.endsWith(")") ? rest.length() - 1 : rest.length();
+                            by = rest.substring(start, end);
+                        }
+                        line = String.join("|", "D", done ? "1" : "0", desc, by);
+                    } else if (type == 'E') {
+                        int fromIdx = rest.lastIndexOf(" (from: ");
+                        String desc = fromIdx == -1 ? rest : rest.substring(0, fromIdx);
+                        String from = "";
+                        String to = "";
+                        if (fromIdx != -1) {
+                            int startFrom = fromIdx + 8;
+                            int toSep = rest.indexOf(" to: ", startFrom);
+                            int endPar = rest.endsWith(")") ? rest.length() - 1 : rest.length();
+                            if (toSep != -1) {
+                                from = rest.substring(startFrom, toSep);
+                                to = rest.substring(toSep + 5, endPar);
+                            }
+                        }
+                        line = String.join("|", "E", done ? "1" : "0", desc, from, to);
+                    } else {
+                        line = String.join("|", "T", done ? "1" : "0", rest);
+                    }
+                    bw.write(line);
+                    bw.newLine();
+                }
+            }
+        } catch (IOException e) {
+        }
     }
 }
