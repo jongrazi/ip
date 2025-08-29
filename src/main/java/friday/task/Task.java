@@ -1,5 +1,7 @@
-public class Task {
-    protected String description;
+package friday.task;
+
+public abstract class Task {
+    protected final String description;
     protected boolean isDone;
 
     public Task(String description) {
@@ -15,19 +17,16 @@ public class Task {
         this.isDone = false;
     }
 
-    public String getStatus() {
-        return isDone ? "X" : " ";
+    public String getDescription() {
+        return description;
     }
 
-    public String getDescription() {
-        return this.description;
-    }
     public boolean isDone() {
-        return this.isDone;
+        return isDone;
     }
 
     @Override
     public String toString() {
-        return "[" + getStatus() + "] " + description;
+        return "[" + (isDone ? "X" : " ") + "] " + description;
     }
 }

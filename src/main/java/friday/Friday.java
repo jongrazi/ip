@@ -1,3 +1,14 @@
+package friday;
+
+import friday.parser.Parser;
+import friday.storage.Storage;
+import friday.task.Deadline;
+import friday.task.Event;
+import friday.task.Task;
+import friday.task.TaskList;
+import friday.task.Todo;
+import friday.ui.Ui;
+
 import java.util.Scanner;
 import java.nio.file.Path;
 import java.nio.file.Paths;
