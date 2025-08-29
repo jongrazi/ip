@@ -1,4 +1,5 @@
-@SuppressWarnings("Checked Exception")
+package friday;
+
 public class FridayException extends Exception {
     public FridayException(String message) {
         super(message);

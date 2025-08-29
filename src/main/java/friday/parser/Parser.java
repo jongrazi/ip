@@ -1,3 +1,5 @@
+package friday.parser;
+
 public class Parser {
     public static String[] splitOnce(String s, String regex) {
         return s.split(regex, 2);

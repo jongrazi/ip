@@ -1,3 +1,5 @@
+package friday.ui;
+
 public class Ui {
     public void showWelcome(String separator) {
         System.out.println(separator);
