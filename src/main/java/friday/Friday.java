@@ -19,13 +19,12 @@ import friday.ui.Ui;
  * <p>Responsibilities:
  * <ul>
  *   <li>Initialize the UI, storage, and in-memory task list.</li>
- *   <li>Read commands from {@link System#in} and execute them (list, todo, deadline, event, mark, unmark, delete).</li>
+ *   <li>Read commands from {@link System#in} and execute them (list, todo, deadline, event, mark, unmark, delete)
  *   <li>Persist changes via {@link Storage} after mutating commands.</li>
  * </ul>
  */
 public class Friday {
 
-    // ----- Constants -----
     /** Default save location used by {@link Storage}. */
     private static final Path SAVE_PATH = Paths.get("data", "duke.txt");
     /** UI separator line. */
@@ -40,6 +39,7 @@ public class Friday {
     private static final String CMD_MARK = "mark";
     private static final String CMD_UNMARK = "unmark";
     private static final String CMD_DELETE = "delete";
+    private static final String CMD_FIND = "find"; // <-- added
 
     // Command tokens
     private static final String TOK_BY = " /by ";
@@ -57,7 +57,6 @@ public class Friday {
         TaskList tasks = new TaskList(storage.load());
         ui.showWelcome(SEPARATOR);
 
-        // Use try-with-resources for clear ownership of the scanner.
         try (Scanner scanner = new Scanner(System.in)) {
             while (scanner.hasNextLine()) {
                 String command = scanner.nextLine().trim();
@@ -87,6 +86,9 @@ public class Friday {
                     } else if (command.startsWith(CMD_EVENT)) {
                         handleEvent(command, tasks, storage);
 
+                    } else if (command.startsWith(CMD_FIND)) {
+                        handleFind(command, tasks);
+
                     } else {
                         throw new FridayException("I'm sorry boss, I didn't quite catch that.");
                     }
@@ -102,8 +104,6 @@ public class Friday {
             }
         }
     }
-
-    // ----- Handlers (small single-purpose methods) -----
 
     private static void handleDelete(String command, TaskList tasks, Storage storage) {
         String[] parts = Parser.splitOnce(command, "\\s+");
@@ -196,12 +196,37 @@ public class Friday {
         String from = details.substring(fromIdx + TOK_FROM.length(), toIdx).trim();
         String to = details.substring(toIdx + TOK_TO.length()).trim();
         if (desc.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            throw new FridayException("Seems like you have made a mistake boss, an event cannot have empty fields.");
+            throw new FridayException( "Seems like you have made a mistake boss, an event cannot have empty fields.");
         }
         Event t = new Event(desc, from, to);
         tasks.add(t);
         storage.save(tasks.asList());
         printAddMessage(t, tasks.size());
+    }
+
+    // ---- added find ----
+    private static void handleFind(String command, TaskList tasks) {
+        String keyword = command.length() > CMD_FIND.length()
+                ? command.substring(CMD_FIND.length()).trim()
+                : "";
+        if (keyword.isEmpty()) {
+            throw new FridayException("Seems like you have made a mistake boss, a find cannot be empty.");
+        }
+        String needle = keyword.toLowerCase();
+
+        System.out.println(SEPARATOR);
+        System.out.println("Here are the matching tasks in your list:");
+        int shown = 0;
+        for (int i = 0; i < tasks.size(); i++) {
+            Task t = tasks.get(i);
+            if (t.getDescription().toLowerCase().contains(needle)) {
+                System.out.println(" " + (++shown) + ". " + t);
+            }
+        }
+        if (shown == 0) {
+            System.out.println(" (no matching tasks)");
+        }
+        System.out.println(SEPARATOR);
     }
 
     private static void printTaskList(TaskList tasks) {
