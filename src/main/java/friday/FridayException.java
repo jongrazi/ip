@@ -1,6 +1,6 @@
 package friday;
 
-public class FridayException extends Exception {
+public class FridayException extends RuntimeException {
     public FridayException(String message) {
         super(message);
     }

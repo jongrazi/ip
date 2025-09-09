@@ -4,37 +4,30 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-test {
-    useJUnitPlatform()
+repositories { mavenCentral() }
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
 }
 
-
-repositories {
-    mavenCentral()
-}
+def os = org.gradle.internal.os.OperatingSystem.current()
+def platform = os.isWindows() ? 'win' : (os.isMacOsX() ? 'mac' : 'linux')
+def fxVer = '17.0.8'
 
 dependencies {
+    implementation "org.openjfx:javafx-base:${fxVer}:${platform}"
+    implementation "org.openjfx:javafx-graphics:${fxVer}:${platform}"
+    implementation "org.openjfx:javafx-controls:${fxVer}:${platform}"
+    implementation "org.openjfx:javafx-fxml:${fxVer}:${platform}"
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
     testRuntimeOnly  'org.junit.jupiter:junit-jupiter-engine:5.10.0'
 }
 
-
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-
-        showExceptions true
-        exceptionFormat "full"
-        showCauses true
-        showStackTraces true
-        showStandardStreams = false
-    }
-}
+test { useJUnitPlatform() }
 
 application {
-    mainClass.set("friday.Friday")
+    mainClass.set("friday.Launcher")
 }
 
 shadowJar {
@@ -42,6 +35,6 @@ shadowJar {
     archiveClassifier = null
 }
 
-run{
+run {
     standardInput = System.in
 }
