@@ -30,6 +30,20 @@ public class Friday {
     /** UI separator line. */
     private static final String SEPARATOR = "_".repeat(60);
 
+    // User-visible messages
+    private static final String MSG_INVALID_INDEX =
+            "Apologies boss, that task number isn't recorded in my database.";
+    private static final String MSG_UNKNOWN_CMD =
+            "I'm sorry boss, I didn't quite catch that.";
+    private static final String MSG_TODO_EMPTY =
+            "Seems like you have made a mistake boss, a todo cannot be empty.";
+    private static final String MSG_DEADLINE_EMPTY =
+            "Seems like you have made a mistake boss, a deadline cannot be empty.";
+    private static final String MSG_EVENT_NEEDS_RANGE =
+            "Seems like you have made a mistake boss, an event needs /from and /to.";
+    private static final String MSG_EVENT_EMPTY =
+            "Seems like you have made a mistake boss, an event cannot have empty fields.";
+
     // Command keywords
     private static final String CMD_BYE = "bye";
     private static final String CMD_LIST = "list";
@@ -39,7 +53,7 @@ public class Friday {
     private static final String CMD_MARK = "mark";
     private static final String CMD_UNMARK = "unmark";
     private static final String CMD_DELETE = "delete";
-    private static final String CMD_FIND = "find"; // <-- added
+    private static final String CMD_FIND = "find";
 
     // Command tokens
     private static final String TOK_BY = " /by ";
@@ -90,7 +104,7 @@ public class Friday {
                         handleFind(command, tasks);
 
                     } else {
-                        throw new FridayException("I'm sorry boss, I didn't quite catch that.");
+                        throw new FridayException(MSG_UNKNOWN_CMD);
                     }
                 } catch (FridayException e) {
                     System.out.println(SEPARATOR);
@@ -98,19 +112,35 @@ public class Friday {
                     System.out.println(SEPARATOR);
                 } catch (NumberFormatException | IndexOutOfBoundsException e) {
                     System.out.println(SEPARATOR);
-                    System.out.println("Apologies boss, that task number isn't recorded in my database.");
+                    System.out.println(MSG_INVALID_INDEX);
                     System.out.println(SEPARATOR);
                 }
             }
         }
     }
 
-    private static void handleDelete(String command, TaskList tasks, Storage storage) {
+    // ----- Quality helpers (no behavior change) -----
+
+    /** Parses a 1-based task number from a command like "mark 2" and returns a zero-based index. */
+    private static int parseOneBasedIndexOrThrow(String command) {
         String[] parts = Parser.splitOnce(command, "\\s+");
         if (parts.length < 2) {
-            throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
+            throw new FridayException(MSG_INVALID_INDEX);
         }
-        int index = Integer.parseInt(parts[1]) - 1;
+        return Integer.parseInt(parts[1]) - 1;
+    }
+
+    /** Add task, persist, and print the standard add confirmation. */
+    private static void addAndPersist(Task t, TaskList tasks, Storage storage) {
+        tasks.add(t);
+        storage.save(tasks.asList());
+        printAddMessage(t, tasks.size());
+    }
+
+    // ----- Handlers -----
+
+    private static void handleDelete(String command, TaskList tasks, Storage storage) {
+        int index = parseOneBasedIndexOrThrow(command);
         Task removed = tasks.remove(index);
         storage.save(tasks.asList());
         System.out.println(SEPARATOR);
@@ -121,11 +151,7 @@ public class Friday {
     }
 
     private static void handleMark(String command, TaskList tasks, Storage storage) {
-        String[] parts = Parser.splitOnce(command, "\\s+");
-        if (parts.length < 2) {
-            throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
-        }
-        int index = Integer.parseInt(parts[1]) - 1;
+        int index = parseOneBasedIndexOrThrow(command);
         Task t = tasks.get(index);
         t.markAsDone();
         storage.save(tasks.asList());
@@ -136,11 +162,7 @@ public class Friday {
     }
 
     private static void handleUnmark(String command, TaskList tasks, Storage storage) {
-        String[] parts = Parser.splitOnce(command, "\\s+");
-        if (parts.length < 2) {
-            throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
-        }
-        int index = Integer.parseInt(parts[1]) - 1;
+        int index = parseOneBasedIndexOrThrow(command);
         Task t = tasks.get(index);
         t.markAsNotDone();
         storage.save(tasks.asList());
@@ -155,9 +177,10 @@ public class Friday {
                 ? command.substring(CMD_TODO.length()).trim()
                 : "";
         if (desc.isEmpty()) {
-            throw new FridayException("Seems like you have made a mistake boss, a todo cannot be empty.");
+            throw new FridayException(MSG_TODO_EMPTY);
         }
         Task t = new Todo(desc);
+        // keep the exact wording for todo
         tasks.add(t);
         storage.save(tasks.asList());
         System.out.println(SEPARATOR);
@@ -173,14 +196,12 @@ public class Friday {
                 : "";
         String[] parts = Parser.splitOnce(details, TOK_BY);
         if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-            throw new FridayException("Seems like you have made a mistake boss, a deadline cannot be empty.");
+            throw new FridayException(MSG_DEADLINE_EMPTY);
         }
         String desc = parts[0].trim();
         String by = parts[1].trim();
         Deadline t = new Deadline(desc, by);
-        tasks.add(t);
-        storage.save(tasks.asList());
-        printAddMessage(t, tasks.size());
+        addAndPersist(t, tasks, storage);
     }
 
     private static void handleEvent(String command, TaskList tasks, Storage storage) {
@@ -190,21 +211,18 @@ public class Friday {
         int fromIdx = Parser.indexOf(details, TOK_FROM);
         int toIdx = Parser.indexOf(details, TOK_TO);
         if (fromIdx == -1 || toIdx == -1) {
-            throw new FridayException("Seems like you have made a mistake boss, an event needs /from and /to.");
+            throw new FridayException(MSG_EVENT_NEEDS_RANGE);
         }
         String desc = details.substring(0, fromIdx).trim();
         String from = details.substring(fromIdx + TOK_FROM.length(), toIdx).trim();
         String to = details.substring(toIdx + TOK_TO.length()).trim();
         if (desc.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            throw new FridayException( "Seems like you have made a mistake boss, an event cannot have empty fields.");
+            throw new FridayException(MSG_EVENT_EMPTY);
         }
         Event t = new Event(desc, from, to);
-        tasks.add(t);
-        storage.save(tasks.asList());
-        printAddMessage(t, tasks.size());
+        addAndPersist(t, tasks, storage);
     }
 
-    // ---- added find ----
     private static void handleFind(String command, TaskList tasks) {
         String keyword = command.length() > CMD_FIND.length()
                 ? command.substring(CMD_FIND.length()).trim()
@@ -218,7 +236,7 @@ public class Friday {
         System.out.println("Here are the matching tasks in your list:");
         int shown = 0;
         for (int i = 0; i < tasks.size(); i++) {
-            Task t = tasks.get(i);
+            friday.task.Task t = tasks.get(i);
             if (t.getDescription().toLowerCase().contains(needle)) {
                 System.out.println(" " + (++shown) + ". " + t);
             }
