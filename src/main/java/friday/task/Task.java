@@ -15,10 +15,15 @@ public abstract class Task {
      *
      * @param description of the task
      */
-
-    public Task(String description) {
+    protected Task(String description) {
+        assert description != null : "Your description cannot be empty, boss.";
         this.description = description;
         this.isDone = false;
+    }
+
+    public String getDescription() {
+        assert description != null : "Your description cannot be empty, boss.";
+        return description;
     }
 
     /** Marks this task as done. */
@@ -36,9 +41,6 @@ public abstract class Task {
      *
      * @return the description string
      */
-    public String getDescription() {
-        return description;
-    }
 
     /**
      * Returns whether this task is done

@@ -2,6 +2,7 @@ package friday.task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A thin wrapper around a list of tasks
@@ -14,6 +15,7 @@ public class TaskList {
     /** Creates an empty task list */
     public TaskList() {
         this.list = new ArrayList<>();
+        assert list != null : "internal list should be initialized";
     }
 
     /**
@@ -21,7 +23,10 @@ public class TaskList {
      * @param initial initial list contents
      */
     public TaskList(List<Task> initial) {
+        assert initial != null : "initial list must not be null";
+        assert initial.stream().noneMatch(Objects::isNull) : "initial list must not contain null tasks";
         this.list = new ArrayList<>(initial);
+        assert list.stream().noneMatch(Objects::isNull) : "internal list must not contain null tasks";
     }
 
     /**
@@ -39,6 +44,7 @@ public class TaskList {
      * @throws IndexOutOfBoundsException if index is out of range
      */
     public Task get(int index) {
+        assert index >= 0 && index < list.size() : "index out of bounds (get)";
         return list.get(index);
     }
 
@@ -48,6 +54,7 @@ public class TaskList {
      * @param t task to add
      */
     public void add(Task t) {
+        assert t != null : "task to add must not be null";
         list.add(t);
     }
     /**
@@ -58,6 +65,7 @@ public class TaskList {
      * @throws IndexOutOfBoundsException if index is out of range
      */
     public Task remove(int index) {
+        assert index >= 0 && index < list.size() : "index out of bounds (remove)";
         return list.remove(index);
     }
 

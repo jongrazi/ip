@@ -10,6 +10,14 @@ java {
     toolchain { languageVersion = JavaLanguageVersion.of(17) }
 }
 
+tasks.named('run') {
+    enableAssertions = true
+}
+
+tasks.named('test') {
+    enableAssertions = true
+}
+
 def os = org.gradle.internal.os.OperatingSystem.current()
 def platform = os.isWindows() ? 'win' : (os.isMacOsX() ? 'mac' : 'linux')
 def fxVer = '17.0.8'
