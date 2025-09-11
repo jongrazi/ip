@@ -13,24 +13,10 @@ import friday.task.TaskList;
 import friday.task.Todo;
 import friday.ui.Ui;
 
-/**
- * Entry point of the Friday CLI application.
- *
- * <p>Responsibilities:
- * <ul>
- *   <li>Initialize the UI, storage, and in-memory task list.</li>
- *   <li>Read commands from {@link System#in} and execute them (list, todo, deadline, event, mark, unmark, delete)
- *   <li>Persist changes via {@link Storage} after mutating commands.</li>
- * </ul>
- */
 public class Friday {
-
-    /** Default save location used by {@link Storage}. */
     private static final Path SAVE_PATH = Paths.get("data", "duke.txt");
-    /** UI separator line. */
     private static final String SEPARATOR = "_".repeat(60);
 
-    // Command keywords
     private static final String CMD_BYE = "bye";
     private static final String CMD_LIST = "list";
     private static final String CMD_TODO = "todo";
@@ -39,18 +25,12 @@ public class Friday {
     private static final String CMD_MARK = "mark";
     private static final String CMD_UNMARK = "unmark";
     private static final String CMD_DELETE = "delete";
-    private static final String CMD_FIND = "find"; // <-- added
+    private static final String CMD_FIND = "find";
 
-    // Command tokens
     private static final String TOK_BY = " /by ";
     private static final String TOK_FROM = " /from ";
     private static final String TOK_TO = " /to ";
 
-    /**
-     * Starts the Friday CLI.
-     *
-     * @param args ignored
-     */
     public static void main(String[] args) {
         Ui ui = new Ui();
         Storage storage = new Storage(SAVE_PATH);
@@ -64,31 +44,22 @@ public class Friday {
                     if (command.equalsIgnoreCase(CMD_BYE)) {
                         printGoodbye();
                         break;
-
                     } else if (command.equalsIgnoreCase(CMD_LIST)) {
                         printTaskList(tasks);
-
                     } else if (command.startsWith(CMD_DELETE)) {
                         handleDelete(command, tasks, storage);
-
                     } else if (command.startsWith(CMD_MARK)) {
                         handleMark(command, tasks, storage);
-
                     } else if (command.startsWith(CMD_UNMARK)) {
                         handleUnmark(command, tasks, storage);
-
                     } else if (command.startsWith(CMD_TODO)) {
                         handleTodo(command, tasks, storage);
-
                     } else if (command.startsWith(CMD_DEADLINE)) {
                         handleDeadline(command, tasks, storage);
-
                     } else if (command.startsWith(CMD_EVENT)) {
                         handleEvent(command, tasks, storage);
-
                     } else if (command.startsWith(CMD_FIND)) {
                         handleFind(command, tasks);
-
                     } else {
                         throw new FridayException("I'm sorry boss, I didn't quite catch that.");
                     }
@@ -105,7 +76,7 @@ public class Friday {
         }
     }
 
-    private static void handleDelete(String command, TaskList tasks, Storage storage) {
+    private static void handleDelete(String command, TaskList tasks, Storage storage) throws FridayException {
         String[] parts = Parser.splitOnce(command, "\\s+");
         if (parts.length < 2) {
             throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
@@ -120,7 +91,7 @@ public class Friday {
         System.out.println(SEPARATOR);
     }
 
-    private static void handleMark(String command, TaskList tasks, Storage storage) {
+    private static void handleMark(String command, TaskList tasks, Storage storage) throws FridayException {
         String[] parts = Parser.splitOnce(command, "\\s+");
         if (parts.length < 2) {
             throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
@@ -135,7 +106,7 @@ public class Friday {
         System.out.println(SEPARATOR);
     }
 
-    private static void handleUnmark(String command, TaskList tasks, Storage storage) {
+    private static void handleUnmark(String command, TaskList tasks, Storage storage) throws FridayException {
         String[] parts = Parser.splitOnce(command, "\\s+");
         if (parts.length < 2) {
             throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
@@ -150,7 +121,7 @@ public class Friday {
         System.out.println(SEPARATOR);
     }
 
-    private static void handleTodo(String command, TaskList tasks, Storage storage) {
+    private static void handleTodo(String command, TaskList tasks, Storage storage) throws FridayException {
         String desc = command.length() > CMD_TODO.length()
                 ? command.substring(CMD_TODO.length()).trim()
                 : "";
@@ -167,7 +138,7 @@ public class Friday {
         System.out.println(SEPARATOR);
     }
 
-    private static void handleDeadline(String command, TaskList tasks, Storage storage) {
+    private static void handleDeadline(String command, TaskList tasks, Storage storage) throws FridayException {
         String details = command.length() > CMD_DEADLINE.length()
                 ? command.substring(CMD_DEADLINE.length()).trim()
                 : "";
@@ -183,7 +154,7 @@ public class Friday {
         printAddMessage(t, tasks.size());
     }
 
-    private static void handleEvent(String command, TaskList tasks, Storage storage) {
+    private static void handleEvent(String command, TaskList tasks, Storage storage) throws FridayException {
         String details = command.length() > CMD_EVENT.length()
                 ? command.substring(CMD_EVENT.length()).trim()
                 : "";
@@ -196,7 +167,7 @@ public class Friday {
         String from = details.substring(fromIdx + TOK_FROM.length(), toIdx).trim();
         String to = details.substring(toIdx + TOK_TO.length()).trim();
         if (desc.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            throw new FridayException( "Seems like you have made a mistake boss, an event cannot have empty fields.");
+            throw new FridayException("Seems like you have made a mistake boss, an event cannot have empty fields.");
         }
         Event t = new Event(desc, from, to);
         tasks.add(t);
@@ -204,8 +175,7 @@ public class Friday {
         printAddMessage(t, tasks.size());
     }
 
-    // ---- added find ----
-    private static void handleFind(String command, TaskList tasks) {
+    private static void handleFind(String command, TaskList tasks) throws FridayException {
         String keyword = command.length() > CMD_FIND.length()
                 ? command.substring(CMD_FIND.length()).trim()
                 : "";
@@ -244,12 +214,6 @@ public class Friday {
         System.out.println(SEPARATOR);
     }
 
-    /**
-     * Prints a standardized add confirmation message.
-     *
-     * @param t the task that was just added
-     * @param totalTasks current size of the task list
-     */
     private static void printAddMessage(Task t, int totalTasks) {
         System.out.println(SEPARATOR);
         System.out.println("Affirmative. I've added this task:");

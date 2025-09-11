@@ -1,2 +1,1 @@
-D|0|return book|2025-11-10
-E|0|birthday|2025-10-11|2025-10-11
+T|0|read
