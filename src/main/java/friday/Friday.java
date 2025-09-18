@@ -13,6 +13,12 @@ import friday.task.TaskList;
 import friday.task.Todo;
 import friday.ui.Ui;
 
+/**
+ * AI-Assisted (ChatGPT, 2025-09-18):
+ * - Added a minimal 'help' command (aliases: -h, /?) that prints a usage summary.
+ * - Kept all existing response strings and behaviors unchanged.
+ * - Changes are self-contained in this file; storage/commands remain untouched.
+ */
 public class Friday {
     private static final Path SAVE_PATH = Paths.get("data", "duke.txt");
     private static final String SEPARATOR = "_".repeat(60);
@@ -26,6 +32,10 @@ public class Friday {
     private static final String CMD_UNMARK = "unmark";
     private static final String CMD_DELETE = "delete";
     private static final String CMD_FIND = "find";
+
+    private static final String CMD_HELP = "help";
+    private static final String CMD_HELP_ALT1 = "-h";
+    private static final String CMD_HELP_ALT2 = "/?";
 
     private static final String TOK_BY = " /by ";
     private static final String TOK_FROM = " /from ";
@@ -41,6 +51,11 @@ public class Friday {
             while (scanner.hasNextLine()) {
                 String command = scanner.nextLine().trim();
                 try {
+                    if (equalsAnyIgnoreCase(command, CMD_HELP, CMD_HELP_ALT1, CMD_HELP_ALT2)) {
+                        printHelp();
+                        continue;
+                    }
+
                     if (command.equalsIgnoreCase(CMD_BYE)) {
                         printGoodbye();
                         break;
@@ -76,8 +91,33 @@ public class Friday {
         }
     }
 
+    private static void printHelp() {
+        System.out.println(SEPARATOR);
+        System.out.println("Friday — Quick Help");
+        System.out.println("Commands:");
+        System.out.println(" list                                   - Show all tasks");
+        System.out.println(" todo <desc>                            - Add a todo");
+        System.out.println(" deadline <desc> /by <yyyy-mm-dd>       - Add a deadline");
+        System.out.println(" event <desc> /from <d> /to <d>         - Add an event");
+        System.out.println(" mark <index> / unmark <index>          - Toggle done");
+        System.out.println(" delete <index>                         - Delete a task");
+        System.out.println(" find <keyword>                         - Search tasks by description");
+        System.out.println(" bye                                    - Exit");
+        System.out.println(" help | -h | /?                         - Show this help");
+        System.out.println(SEPARATOR);
+    }
+
+    private static boolean equalsAnyIgnoreCase(String s, String... options) {
+        for (String opt : options) {
+            if (s.equalsIgnoreCase(opt)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static void handleDelete(String command, TaskList tasks, Storage storage) throws FridayException {
-        String[] parts = Parser.splitOnce(command, "\\s+");
+        String[] parts = Parser.splitOnce(command, "\s+");
         if (parts.length < 2) {
             throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
         }
@@ -92,7 +132,7 @@ public class Friday {
     }
 
     private static void handleMark(String command, TaskList tasks, Storage storage) throws FridayException {
-        String[] parts = Parser.splitOnce(command, "\\s+");
+        String[] parts = Parser.splitOnce(command, "\s+");
         if (parts.length < 2) {
             throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
         }
@@ -107,7 +147,7 @@ public class Friday {
     }
 
     private static void handleUnmark(String command, TaskList tasks, Storage storage) throws FridayException {
-        String[] parts = Parser.splitOnce(command, "\\s+");
+        String[] parts = Parser.splitOnce(command, "\s+");
         if (parts.length < 2) {
             throw new FridayException("Apologies boss, that task number isn't recorded in my database.");
         }
