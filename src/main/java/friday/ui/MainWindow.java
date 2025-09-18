@@ -1,8 +1,5 @@
 package friday.ui;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import friday.FridayException;
 import friday.parser.Parser;
 import friday.storage.Storage;
@@ -13,13 +10,12 @@ import friday.task.TaskList;
 import friday.task.Todo;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
-import javafx.geometry.Pos;
 
 public class MainWindow {
     @FXML private ScrollPane scrollPane;
@@ -27,20 +23,41 @@ public class MainWindow {
     @FXML private TextField userInput;
     @FXML private Button sendButton;
 
-    private static final Path SAVE_PATH = Paths.get("data", "duke.txt");
-    private final Storage storage = new Storage(SAVE_PATH);
-    private final TaskList tasks = new TaskList(storage.load());
+    private Ui ui;
+    private Storage storage;
+    private TaskList tasks;
+
+    // Avatars
+    private Image userImage;
+    private Image fridayImage;
 
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
-        addBot("Friday online. How may I assist?");
+        if (userInput != null) {
+            userInput.setOnAction(e -> handleUserInput());
+        }
+
+        // load avatars from resources/images/
+        userImage = new Image(this.getClass().getResourceAsStream("/images/user.png"));
+        fridayImage = new Image(this.getClass().getResourceAsStream("/images/friday.png"));
+    }
+
+    /** Called by Main.java after FXML load. */
+    public void init(Ui ui, Storage storage, TaskList tasks) {
+        this.ui = ui;
+        this.storage = storage;
+        this.tasks = tasks;
+    }
+
+    public void showFridayMessage(String msg) {
+        addBot(msg);
     }
 
     @FXML
     void handleUserInput() {
-        String input = userInput.getText().trim();
-        if (input.isEmpty()) { return; }
+        String input = userInput.getText() == null ? "" : userInput.getText().trim();
+        if (input.isEmpty()) return;
 
         addUser(input);
         String response = getResponse(input);
@@ -52,11 +69,23 @@ public class MainWindow {
         }
     }
 
-    // === Same commands as your CLI (incl. Level-9 find) ===
+    // === Command handling: mirrors your CLI behaviour ===
     private String getResponse(String command) {
         try {
             if (command.equalsIgnoreCase("bye")) {
                 return "Affirmative, goodnight boss.";
+            } else if (command.equalsIgnoreCase("help")) {
+                return String.join("\n",
+                        "Okay boss, here are the available commands:",
+                        "  list",
+                        "  todo <desc>",
+                        "  deadline <desc> /by <yyyy-mm-dd>",
+                        "  event <desc> /from <yyyy-mm-dd> /to <yyyy-mm-dd>",
+                        "  mark <number> | unmark <number> | delete <number>",
+                        "  find <keyword>",
+                        "  help",
+                        "  bye"
+                );
             } else if (command.equalsIgnoreCase("list")) {
                 StringBuilder sb = new StringBuilder("Affirmative, loading tasks...\n");
                 for (int i = 0; i < tasks.size(); i++) {
@@ -144,26 +173,12 @@ public class MainWindow {
         }
     }
 
-    // ---- bubble rendering (Jarvis style) ----
+    // === Updated: use DialogBox with avatars ===
     private void addUser(String text) {
-        Label bubble = new Label("> " + text);
-        bubble.getStyleClass().addAll("bubble", "user");
-
-        HBox row = new HBox(bubble);
-        row.getStyleClass().add("user-row");
-        row.setAlignment(Pos.CENTER_RIGHT);
-
-        dialogContainer.getChildren().add(row);
+        dialogContainer.getChildren().add(new DialogBox("> " + text, userImage, true));
     }
 
     private void addBot(String text) {
-        Label bubble = new Label(text);
-        bubble.getStyleClass().addAll("bubble", "bot");
-
-        HBox row = new HBox(bubble);
-        row.getStyleClass().add("bot-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-
-        dialogContainer.getChildren().add(row);
+        dialogContainer.getChildren().add(new DialogBox(text, fridayImage, false));
     }
 }
