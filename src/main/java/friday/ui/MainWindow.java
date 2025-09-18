@@ -126,7 +126,7 @@ public class MainWindow {
                 String details = command.length() > 8 ? command.substring(8).trim() : "";
                 String[] parts = Parser.splitOnce(details, " /by ");
                 if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-                    throw new FridayException("Seems like you have made a mistake boss, a deadline cannot be empty.");
+                    throw new FridayException("Seems like you have made a mistake boss, try deadline <desc> /by <date>.");
                 }
                 Deadline t = new Deadline(parts[0].trim(), parts[1].trim());
                 tasks.add(t);
@@ -137,13 +137,13 @@ public class MainWindow {
                 int fromIdx = Parser.indexOf(details, " /from ");
                 int toIdx = Parser.indexOf(details, " /to ");
                 if (fromIdx == -1 || toIdx == -1) {
-                    throw new FridayException("Seems like you have made a mistake boss, an event needs /from and /to.");
+                    throw new FridayException("Seems like you have made a mistake boss, try event <desc> /from <date> /to <date>");
                 }
                 String desc = details.substring(0, fromIdx).trim();
                 String from = details.substring(fromIdx + 7, toIdx).trim();
                 String to = details.substring(toIdx + 5).trim();
                 if (desc.isEmpty() || from.isEmpty() || to.isEmpty()) {
-                    throw new FridayException("Seems like you have made a mistake boss, an event cannot have empty fields.");
+                    throw new FridayException("Seems like you have made a mistake boss, try event <desc> /from <date> /to <date>");
                 }
                 Event t = new Event(desc, from, to);
                 tasks.add(t);
@@ -168,6 +168,8 @@ public class MainWindow {
             }
         } catch (FridayException e) {
             return e.getMessage();
+        } catch (java.time.format.DateTimeParseException e) {
+            return "Seems like you have made a mistake boss, please use ISO date format (yyyy-mm-dd).";
         } catch (NumberFormatException | IndexOutOfBoundsException e) {
             return "Apologies boss, that task number isn't recorded in my database.";
         }
