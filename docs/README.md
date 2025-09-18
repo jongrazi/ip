@@ -1,30 +1,56 @@
 # Friday User Guide
 
-// Update the title above to match the actual product name
+Friday is your personal chatbot assistant that helps you manage tasks from the Command Line (CLI) and Graphical User Interface (GUI).
 
-// Product screenshot goes here
+---
 
-// Product intro goes here
+## Quick Start
+1. Ensure you have Java 17 installed.
+2. Download the latest `friday.jar` from [Releases](link-to-your-jar).
+3. Run: `java -jar friday.jar`.
 
-## Adding deadlines
+---
 
-// Describe the action and its outcome.
+## Features
 
-// Give examples of usage
+### Add a Todo
+`todo <description>`  
+Example: `todo read book`
 
-Example: `keyword (optional arguments)`
+### Add a Deadline
+`deadline <description> /by <date>`  
+Example: `deadline submit report /by 2025-10-01`
 
-// A description of the expected outcome goes here
+### Add an Event
+`event <description> /from <start> /to <end>`  
+Example: `event meeting /from 2025-10-01 /to 2025-10-02`
 
-```
-expected output
-```
+### List Tasks
+`list`
 
-## Feature ABC
+### Mark/Unmark Tasks
+`mark 2`  
+`unmark 2`
 
-// Feature details
+### Delete Task
+`delete 3`
 
+### Find Tasks
+`find <keyword>`
 
-## Feature XYZ
+### Help
+`help`
 
-// Feature details
+### Exit
+`bye`
+
+---
+
+## GUI Screenshot
+![Ui](Ui.png)
+
+---
+
+## FAQ
+**Q: What if I type the wrong command?**  
+A: Friday will let you know with a friendly error message.
