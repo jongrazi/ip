@@ -29,11 +29,11 @@ Example: `event meeting /from 2025-10-01 /to 2025-10-02`
 `list`
 
 ### Mark/Unmark Tasks
-`mark 2`  
-`unmark 2`
+`mark <number>`  
+`unmark <number>`
 
 ### Delete Task
-`delete 3`
+`delete <number>`
 
 ### Find Tasks
 `find <keyword>`
@@ -54,3 +54,6 @@ Example: `event meeting /from 2025-10-01 /to 2025-10-02`
 ## FAQ
 **Q: What if I type the wrong command?**  
 A: Friday will let you know with a friendly error message.
+
+**Q: How can I find out the list of commands possible?**  
+A: Use 'help' to find out all possible commands.
