@@ -1,5 +1,9 @@
+
 package friday;
 
+import friday.logic.CommandResult;
+import friday.logic.Logic;
+import friday.logic.LogicManager;
 import friday.storage.Storage;
 import friday.task.TaskList;
 import friday.ui.MainWindow;
@@ -12,39 +16,33 @@ import javafx.stage.Stage;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * GUI entrypoint that mirrors CLI behaviour and welcome.
- */
-public class Main extends Application {
 
-    private Ui ui;
-    private Storage storage;
-    private TaskList tasks;
+public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        ui = new Ui();
-        Path savePath = Paths.get("data", "duke.txt");   // same file as CLI
-        storage = new Storage(savePath);
-        tasks = new TaskList(storage.load());
+        Ui ui = new Ui();
+        Path savePath = Paths.get("data", "duke.txt");
+        Storage storage = new Storage(savePath);
+        TaskList tasks = new TaskList(storage.load());
+        Logic logic = new LogicManager(tasks, storage);
 
-        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/MainWindow.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("/view/MainWindow.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        stage.setScene(scene);
-        stage.setTitle("Friday");
-
         MainWindow controller = fxmlLoader.getController();
-        controller.init(ui, storage, tasks);
 
+        controller.init(ui, storage, tasks, logic);
+
+        stage.setScene(scene);
+        stage.setTitle("F.R.I.D.A.Y");
         stage.show();
 
 
         String welcome =
                 "It's good to have you back sir, I am F.R.I.D.A.Y\n"
-                + "What can I do for you sir?\n"
-                + "Type 'help' to learn more\n";
-
-        controller.showFridayMessage(welcome); // shows in GUI
+                        + "What can I do for you sir?\n"
+                        + "Type 'help' to learn more\n";
+        controller.showFridayMessage(welcome);
     }
 
     public static void main(String[] args) {
